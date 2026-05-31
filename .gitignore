@@ -1,2 +1,9 @@
 
 data_ml_engine/pipeline/risk_model.joblib
+=======
+.venv/
+__pycache__/
+*.pyc
+.DS_Store
+.env
+
