@@ -1,16 +1,3 @@
-"""
-ml_api_server.py  —  PreCrash SoS  |  Member A: Data & ML Engine
-Local ML REST wrapper node.  Exposed on port 8001 inside the precrash_mesh network.
-
-Endpoints
----------
-GET  /health                — liveness probe for docker-compose depends_on checks
-POST /predict/risk          — predict crash-risk score for a coordinate snapshot
-POST /predict/gap           — compute Responder Gap Index for a live incident
-POST /predict/batch_zones   — rank multiple hazard zones by gap index
-POST /train                 — (re)train the risk model on a supplied dataset
-"""
-
 import os
 import sys
 import json
@@ -28,7 +15,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.metrics import classification_report
 import joblib
 
-# ── path bootstrap so imports work from /app (Docker WORKDIR) ──────────────────
+# path bootstrap so imports work from /app (Docker WORKDIR) 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")))
 
 from core_config.global_constants import (
@@ -38,18 +25,18 @@ from core_config.global_constants import (
 )
 from data_ml_engine.scorer.gap_analyzer import TargetGapScorer
 
-# ── logging ───────────────────────────────────────────────────────────────────
+# logging 
 logging.basicConfig(
     level=logging.DEBUG if RUN_ENVIRONMENT == "DEVELOPMENT" else logging.INFO,
     format="%(asctime)s [%(levelname)s] %(name)s — %(message)s",
 )
 log = logging.getLogger("ml_api_server")
 
-# ── Flask app ─────────────────────────────────────────────────────────────────
+# Flask app 
 app = Flask(__name__)
 app.config["JSON_SORT_KEYS"] = False
 
-# ── global model state ────────────────────────────────────────────────────────
+# global model state 
 MODEL_PATH = os.path.join(os.path.dirname(__file__), "risk_model.joblib")
 _model_lock = threading.Lock()
 _risk_pipeline: Pipeline | None = None
@@ -58,9 +45,8 @@ _model_meta: dict = {"trained_at": None, "samples": 0, "report": {}}
 gap_scorer = TargetGapScorer()
 
 
-# ─────────────────────────────────────────────────────────────────────────────
+
 #  Model helpers
-# ─────────────────────────────────────────────────────────────────────────────
 
 def _build_pipeline() -> Pipeline:
     """Construct a fresh sklearn Pipeline."""
@@ -174,9 +160,9 @@ def _ensure_model_loaded():
                 log.info("Initial synthetic training complete.")
 
 
-# ─────────────────────────────────────────────────────────────────────────────
+
 #  Request validation helpers
-# ─────────────────────────────────────────────────────────────────────────────
+
 
 REQUIRED_FEATURES = [
     "hour_of_day", "day_of_week", "road_speed_limit", "vehicle_speed",
@@ -193,9 +179,9 @@ def _extract_feature_vector(payload: dict) -> np.ndarray:
     return np.array([[float(payload[f]) for f in REQUIRED_FEATURES]])
 
 
-# ─────────────────────────────────────────────────────────────────────────────
+
 #  Routes
-# ─────────────────────────────────────────────────────────────────────────────
+
 
 @app.route("/health", methods=["GET"])
 def health():
@@ -417,9 +403,9 @@ def model_info():
     }), 200
 
 
-# ─────────────────────────────────────────────────────────────────────────────
+
 #  Entry point
-# ─────────────────────────────────────────────────────────────────────────────
+
 
 if __name__ == "__main__":
     log.info("PreCrash SoS — ML Engine starting on port 8001 [%s]", RUN_ENVIRONMENT)

@@ -1,14 +1,44 @@
-version: '3.8'
-
 services:
-  # MEMBER D: TELEMETRY OVERLAYS & WORKSPACE
+
+ 
+  ml_engine:
+    build:
+      context: .
+      dockerfile: data_ml_engine/Dockerfile
+    container_name: precrash_ml_engine
+    ports:
+      - "8001:8001"
+    environment:
+      - PRECRASH_ENV=DEVELOPMENT
+    networks:
+      - precrash_mesh
+
+  
+  backend_core:
+    build:
+      context: .
+      dockerfile: backend_service/Dockerfile
+    container_name: precrash_backend_core
+    ports:
+      - "5050:5050"
+    environment:
+      - PRECRASH_ENV=DEVELOPMENT
+      - ML_ENGINE_URL=http://ml_engine:8001
+    depends_on:
+      - ml_engine
+    networks:
+      - precrash_mesh
+
+  
   frontend_dashboard:
     build:
       context: .
       dockerfile: dashboard_frontend/Dockerfile
     container_name: precrash_frontend_view
     ports:
-      - "8081:80"
+      - "8080:80"
+    depends_on:
+      - backend_core
     networks:
       - precrash_mesh
 

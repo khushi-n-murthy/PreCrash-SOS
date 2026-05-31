@@ -171,7 +171,7 @@ def critical_incident():
 if __name__ == "__main__":
     socketio.run(
         app,
-        host="127.0.0.1",
+        host="0.0.0.0",     # accepts connections from outside the container
         port=5050,
         debug=True,
         use_reloader=False,

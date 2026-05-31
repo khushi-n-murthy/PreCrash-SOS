@@ -1,14 +1,3 @@
-"""
-gap_analyzer.py  —  PreCrash SoS  |  Member A: Data & ML Engine
-Responder Gap Index calculation engine.
-
-Computes a spatial coverage score that measures how "exposed" a hazard zone is,
-given the current distribution of active responders.
-
-Gap Index  →  0.0  : fully covered (many nearby responders)
-             1.0  : completely uncovered (no responders in scan radius)
-"""
-
 import numpy as np
 from core_config.global_constants import (
     EARTH_RADIUS_EQUATORIAL_KM,

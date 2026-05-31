@@ -56,7 +56,7 @@ class TelemetryInterfaceManager {
         });
 
         // Contract Event Signature: incident_sos_trigger
-        this.socket.on('incident_sos_trigger', (payload) => {
+        this.socket.on('critical_incident', (payload) => {
             console.log(`[TelemetryInterfaceManager] Intercepted telemetry signal: incident_sos_trigger`, payload);
             this.handleIncidentSosTrigger(payload);
         });
@@ -154,7 +154,7 @@ class TelemetryInterfaceManager {
 // Self-Instantiation upon DOMContentLoaded
 document.addEventListener('DOMContentLoaded', () => {
     if (!window.telemetryManager) {
-        const hostUrl = window.location.origin;
+        const hostUrl = "http://localhost:5050";
         const targetRole = "dispatcher";
         const regionScope = "PAC-CENTRAL";
         
