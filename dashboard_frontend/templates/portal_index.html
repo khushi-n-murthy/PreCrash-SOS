@@ -1,0 +1,1432 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="PreCrash SoS Enterprise Logistics Command Dashboard">
+    <title>PreCrash SoS Command Center</title>
+    
+    <!-- Google Fonts: Inter Sans-Serif Stack -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- FontAwesome Vector Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Official Socket.io Client CDN -->
+    <script src="https://cdn.socket.io/4.7.5/socket.io.min.js" crossorigin="anonymous"></script>
+
+    <style>
+        :root {
+            /* Premium "Liquid Glass" Light Mode Palette */
+            --bg-base: #F8FAFC;
+            --bg-surface: rgba(255, 255, 255, 0.85);
+            --bg-surface-opaque: #FFFFFF;
+            --bg-dock: #0F172A; /* Slate 900 Dark Side-Dock */
+            
+            --border-glass: rgba(226, 232, 240, 0.85);
+            --border-light: rgba(0, 0, 0, 0.04);
+            
+            --color-green: #06C167;     /* Refined iOS Mint Green */
+            --color-red: #FF3B30;       /* iOS Red for Alerts */
+            --color-amber: #FF9500;     /* Warnings Amber */
+            --color-blue: #007AFF;      /* Corporate iOS Blue */
+            
+            /* Accent variables bound with socket_client.js */
+            --accent-amber: #FF9500;
+            --accent-red: #FF3B30;
+            --accent-cyan: #007AFF;
+            --accent-green: #06C167;
+            
+            /* High Contrast Scannable Typography */
+            --text-primary: #0F172A;    /* Slate 900 */
+            --text-secondary: #475569;  /* Slate 600 */
+            --text-muted: #94A3B8;      /* Slate 400 */
+            
+            --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            --font-mono: "SFMono-Regular", Consolas, Menlo, monospace;
+            
+            --shadow-soft: 0 10px 40px rgba(15, 23, 42, 0.03), 0 2px 8px rgba(15, 23, 42, 0.01);
+            --shadow-elevated: 0 20px 50px rgba(15, 23, 42, 0.06), 0 4px 12px rgba(15, 23, 42, 0.02);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        body {
+            background-color: var(--bg-base);
+            color: var(--text-secondary);
+            font-family: var(--font-sans);
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+        }
+
+        /* Minimalist Vertical Side-Dock Navigation Container */
+        .side-dock {
+            width: 72px;
+            height: calc(100vh - 40px);
+            background-color: var(--bg-dock);
+            border-radius: 20px;
+            margin: 20px 0 20px 20px;
+            padding: 24px 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 10;
+            box-shadow: 0 12px 30px rgba(15, 23, 42, 0.15);
+        }
+
+        .dock-nav {
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+            align-items: center;
+            width: 100%;
+        }
+
+        .dock-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #64748B;
+            cursor: pointer;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .dock-btn:hover, .dock-btn.active {
+            color: #FFFFFF;
+            background-color: rgba(255, 255, 255, 0.08);
+            transform: scale(1.05);
+        }
+
+        .dock-btn i {
+            font-size: 16px;
+        }
+
+        .dock-footer {
+            margin-top: auto;
+        }
+
+        /* Main Command Center Workspace */
+        .workspace {
+            flex: 1;
+            height: 100vh;
+            padding: 20px 24px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* Clean Top Header Row */
+        .header-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+            width: 100%;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 24px;
+        }
+
+        .brand-title {
+            font-size: 1.3rem;
+            font-weight: 800;
+            color: var(--text-primary);
+            letter-spacing: -0.04em;
+        }
+
+        /* Real Operational Grounding Metrics */
+        .telemetry-summary {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            font-size: 0.72rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            border-left: 1.5px solid var(--border-glass);
+            padding-left: 20px;
+        }
+
+        .telemetry-summary span {
+            color: var(--text-muted);
+            margin-right: 4px;
+            font-weight: 500;
+        }
+
+        .telemetry-summary strong {
+            color: var(--text-primary);
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+        }
+
+        /* Connectivity Pill exactly bound with ID mesh-status-badge */
+        .connectivity-pill {
+            background-color: rgba(255, 59, 48, 0.06);
+            border: 1px solid rgba(255, 59, 48, 0.15);
+            color: var(--color-red);
+            padding: 8px 16px;
+            border-radius: 100px;
+            font-size: 0.72rem;
+            font-weight: 700;
+            letter-spacing: 0.02em;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: var(--shadow-soft);
+        }
+
+        .connectivity-pill.online {
+            background-color: rgba(6, 193, 103, 0.06);
+            border: 1px solid rgba(6, 193, 103, 0.15);
+            color: var(--color-green);
+        }
+
+        .mesh-pulse-dot {
+            width: 5px;
+            height: 5px;
+            background-color: currentColor;
+            border-radius: 50%;
+        }
+
+        /* Main Interactive Layout Workspace with grid collapse transition */
+        .workspace-grid {
+            flex: 1;
+            display: grid;
+            grid-template-columns: 380px 1fr;
+            gap: 20px;
+            overflow: hidden;
+            transition: grid-template-columns 0.4s cubic-bezier(0.4, 0, 0.2, 1), gap 0.4s ease;
+        }
+
+        .workspace-grid.full-width {
+            grid-template-columns: 0px 1fr;
+            gap: 0px;
+        }
+
+        /* Left Column: Fleet Monitor & Dispatch Panels */
+        .left-column {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            overflow-y: auto;
+            padding-right: 4px;
+            transition: opacity 0.4s ease, visibility 0.4s ease, transform 0.4s ease;
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .workspace-grid.full-width .left-column {
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+            transform: translateX(-20px);
+        }
+
+        .left-column::-webkit-scrollbar {
+            width: 4px;
+        }
+        .left-column::-webkit-scrollbar-thumb {
+            background-color: var(--border-glass);
+            border-radius: 2px;
+        }
+
+        /* Premium "Liquid Glass" Container */
+        .glass-card {
+            background: var(--bg-surface);
+            backdrop-filter: blur(16px);
+            border: 1px solid var(--border-glass);
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: var(--shadow-soft);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .ops-panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            border-bottom: 1px solid var(--border-glass);
+            padding-bottom: 8px;
+        }
+
+        .panel-title {
+            font-size: 0.76rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: var(--text-primary);
+        }
+
+        .panel-badge {
+            font-family: var(--font-sans);
+            font-size: 0.65rem;
+            color: var(--text-muted);
+            background-color: rgba(0, 0, 0, 0.03);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        /* Incident Dispatch Focus Alert Panel exactly bound with ID alert-dispatch-panel */
+        .dispatch-focus-card {
+            min-height: 120px;
+            display: flex;
+            flex-direction: column;
+            transition: all 0.3s ease;
+        }
+
+        #alert-dispatch-panel {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: flex-start;
+            position: relative;
+            z-index: 2;
+        }
+
+        /* Clean Pulsing Green Idle Indicator */
+        .alert-idle-state {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 14px 18px;
+            border-radius: 12px;
+            background: rgba(6, 193, 103, 0.04);
+            border: 1px solid rgba(6, 193, 103, 0.12);
+            width: 100%;
+            box-shadow: inset 0 1px 2px rgba(6, 193, 103, 0.02);
+        }
+
+        .pulse-green-dot {
+            width: 8px;
+            height: 8px;
+            background-color: var(--color-green);
+            border-radius: 50%;
+            box-shadow: 0 0 8px var(--color-green);
+            animation: pulse-operational 2s infinite ease-in-out;
+        }
+
+        .idle-message {
+            font-size: 0.78rem;
+            color: var(--text-secondary);
+            font-weight: 500;
+            line-height: 1.4;
+        }
+
+        @keyframes pulse-operational {
+            0%, 100% {
+                opacity: 0.5;
+                transform: scale(0.9);
+            }
+            50% {
+                opacity: 1;
+                transform: scale(1.15);
+                box-shadow: 0 0 12px var(--color-green);
+            }
+        }
+
+        /* Fleet Monitor Feed exactly bound with ID active-responders-list */
+        .fleet-panel {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Fleet Filter Search Element */
+        .fleet-filter-container {
+            position: relative;
+            width: 100%;
+            margin-bottom: 12px;
+        }
+
+        .fleet-filter-container i {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-muted);
+            font-size: 11px;
+        }
+
+        .fleet-filter-input {
+            width: 100%;
+            padding: 8px 12px 8px 30px;
+            background-color: rgba(0, 0, 0, 0.02);
+            border: 1px solid var(--border-glass);
+            border-radius: 8px;
+            font-size: 0.75rem;
+            color: var(--text-primary);
+            outline: none;
+            transition: all 0.2s ease;
+        }
+
+        .fleet-filter-input:focus {
+            background-color: #FFFFFF;
+            border-color: var(--color-blue);
+            box-shadow: var(--shadow-soft);
+        }
+
+        .responders-list-container {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            overflow-y: auto;
+            flex: 1;
+        }
+
+        /* Clean tabular modern cards without colored left borders */
+        .responder-row-card {
+            background-color: rgba(255, 255, 255, 0.5);
+            border: 1px solid var(--border-glass);
+            border-radius: 12px;
+            padding: 12px 14px;
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .responder-row-card:hover {
+            background-color: var(--bg-surface-opaque);
+            border-color: #CBD5E1;
+            transform: translateY(-1.5px);
+            box-shadow: 0 6px 16px rgba(15, 23, 42, 0.04);
+        }
+
+        .responder-row-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .responder-identity {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .identity-icon {
+            width: 26px;
+            height: 26px;
+            border-radius: 8px;
+            background-color: #FFFFFF;
+            border: 1px solid var(--border-glass);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-primary);
+            font-size: 10px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+        }
+
+        .responder-callsign {
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .responder-status-pill {
+            font-size: 0.62rem;
+            font-weight: 700;
+            padding: 2px 6px;
+            border-radius: 4px;
+            text-transform: uppercase;
+            letter-spacing: 0.02em;
+        }
+
+        .status-enroute {
+            background-color: rgba(255, 149, 0, 0.06);
+            color: var(--color-amber);
+            border: 1px solid rgba(255, 149, 0, 0.12);
+        }
+
+        .status-onscene {
+            background-color: rgba(255, 59, 48, 0.06);
+            color: var(--color-red);
+            border: 1px solid rgba(255, 59, 48, 0.12);
+        }
+
+        .status-standby {
+            background-color: rgba(6, 193, 103, 0.06);
+            color: var(--color-green);
+            border: 1px solid rgba(6, 193, 103, 0.12);
+        }
+
+        /* Fleet data rows */
+        .responder-data-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 6px;
+            font-size: 0.68rem;
+            border-top: 1px solid rgba(0, 0, 0, 0.03);
+            padding-top: 8px;
+            color: var(--text-secondary);
+        }
+
+        .data-item {
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .data-label {
+            color: var(--text-muted);
+        }
+
+        .data-val {
+            font-family: var(--font-mono);
+            color: var(--text-primary);
+            font-weight: 600;
+        }
+
+        /* Right Column: Tab View Manager Layout */
+        .right-column {
+            position: relative;
+            height: 100%;
+        }
+
+        /* Tab panels structure */
+        .tab-panel {
+            display: none;
+            width: 100%;
+            height: 100%;
+            animation: fadeInPanel 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .tab-panel.active {
+            display: flex;
+            flex-direction: column;
+        }
+
+        @keyframes fadeInPanel {
+            from { opacity: 0; transform: scale(0.995) translateY(4px); }
+            to { opacity: 1; transform: scale(1) translateY(0); }
+        }
+
+        /* View State 1: Edge-to-Edge GIS Map */
+        .map-card-wrapper {
+            width: 100%;
+            height: 100%;
+            background-color: #FFFFFF;
+            border: 1px solid var(--border-glass);
+            border-radius: 20px;
+            box-shadow: var(--shadow-soft);
+            overflow: hidden;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .map-canvas-viewport {
+            flex: 1;
+            position: relative;
+            background-color: #F8FAFC;
+        }
+
+        /* High fidelity road vectors representing universal metadata grid */
+        .map-svg-canvas {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+
+        /* Metro Corridors Highway vectors */
+        .map-highway-vector {
+            stroke: #E2E8F0;
+            stroke-width: 14px;
+            stroke-linecap: round;
+            fill: none;
+        }
+
+        .map-highway-vector-line {
+            stroke: #CBD5E1;
+            stroke-width: 8px;
+            stroke-linecap: round;
+            fill: none;
+        }
+
+        .map-highway-vector-dash {
+            stroke: #FFFFFF;
+            stroke-width: 1.5px;
+            stroke-linecap: round;
+            fill: none;
+            stroke-dasharray: 8 6;
+        }
+
+        .map-arterial-vector {
+            stroke: #E2E8F0;
+            stroke-width: 6px;
+            stroke-linecap: round;
+            fill: none;
+        }
+
+        .map-arterial-vector-line {
+            stroke: #94A3B8;
+            stroke-width: 2px;
+            stroke-linecap: round;
+            fill: none;
+        }
+
+        .metro-dispatch-glow {
+            stroke: rgba(0, 122, 255, 0.12);
+            stroke-width: 16px;
+            stroke-linecap: round;
+            fill: none;
+        }
+
+        .metro-dispatch-line {
+            stroke: #0F172A;
+            stroke-width: 3px;
+            stroke-linecap: round;
+            fill: none;
+        }
+
+        /* Generic Metropolitan Map Pins */
+        .map-pin-container {
+            position: absolute;
+            z-index: 3;
+            transform: translate(-50%, -50%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            pointer-events: none;
+        }
+
+        .pin-hub-central {
+            left: 35%;
+            top: 60%;
+        }
+
+        .pin-sector-4 {
+            left: 20%;
+            top: 75%;
+        }
+
+        .pin-dispatch-target {
+            left: 60%;
+            top: 35%;
+        }
+
+        .map-pin-symbol {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background-color: var(--color-blue);
+            border: 2.5px solid #FFFFFF;
+            box-shadow: 0 2px 8px rgba(0, 122, 255, 0.35);
+            transition: all 0.3s ease;
+        }
+
+        .pin-dispatch-target .map-pin-symbol {
+            background-color: var(--color-red);
+            box-shadow: 0 0 12px rgba(255, 59, 48, 0.6);
+            animation: pulse-pin 1.5s infinite ease-in-out;
+        }
+
+        @keyframes pulse-pin {
+            0%, 100% {
+                transform: scale(0.95);
+                box-shadow: 0 0 8px rgba(255, 59, 48, 0.5);
+            }
+            50% {
+                transform: scale(1.15);
+                box-shadow: 0 0 16px rgba(255, 59, 48, 0.8);
+            }
+        }
+
+        .pin-sector-4 .map-pin-symbol {
+            background-color: var(--text-secondary);
+            box-shadow: 0 2px 8px rgba(71, 85, 105, 0.25);
+        }
+
+        .map-pin-label {
+            margin-top: 5px;
+            background-color: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(8px);
+            border: 1px solid var(--border-glass);
+            border-radius: 6px;
+            padding: 3px 8px;
+            font-size: 0.62rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            box-shadow: var(--shadow-soft);
+            white-space: nowrap;
+        }
+
+        /* Floating Corridor label */
+        .map-floating-label {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(8px);
+            border: 1px solid var(--border-glass);
+            border-radius: 100px;
+            padding: 8px 18px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: var(--shadow-soft);
+            z-index: 5;
+        }
+
+        .corridor-banner-label {
+            font-size: 0.68rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            letter-spacing: 0.02em;
+        }
+
+        .corridor-pulse-dot {
+            width: 6px;
+            height: 6px;
+            background-color: var(--color-blue);
+            border-radius: 50%;
+            box-shadow: 0 0 6px var(--color-blue);
+            animation: pulse-operational 1.5s infinite ease-in-out;
+        }
+
+        /* Map overlays UI */
+        .map-hud-controls {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            z-index: 5;
+        }
+
+        .map-action-btn {
+            width: 32px;
+            height: 32px;
+            background-color: #FFFFFF;
+            border: 1px solid var(--border-glass);
+            border-radius: 8px;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: var(--shadow-soft);
+            font-size: 11px;
+            transition: all 0.2s ease;
+        }
+
+        .map-action-btn:hover {
+            border-color: #CBD5E1;
+            transform: scale(1.05);
+        }
+
+        /* View State 2: Dedicated Analytics Workspace */
+        .analytics-wrapper {
+            width: 100%;
+            height: 100%;
+            background-color: #FFFFFF;
+            border: 1px solid var(--border-glass);
+            border-radius: 20px;
+            box-shadow: var(--shadow-soft);
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            overflow-y: auto;
+        }
+
+        .analytics-header {
+            border-bottom: 1.5px solid var(--border-glass);
+            padding-bottom: 12px;
+        }
+
+        .analytics-title {
+            font-size: 1.1rem;
+            font-weight: 800;
+            color: var(--text-primary);
+            letter-spacing: -0.02em;
+        }
+
+        .analytics-desc {
+            font-size: 0.76rem;
+            color: var(--text-muted);
+            margin-top: 2px;
+        }
+
+        /* Analytics Main Chart Container */
+        .analytics-chart-card {
+            background-color: var(--bg-base);
+            border: 1px solid var(--border-glass);
+            border-radius: 14px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .chart-title {
+            font-size: 0.72rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-secondary);
+        }
+
+        .chart-stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+        }
+
+        .chart-stat-cell {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            background-color: #FFFFFF;
+            border: 1px solid var(--border-glass);
+            border-radius: 12px;
+            padding: 14px 18px;
+            box-shadow: var(--shadow-soft);
+        }
+
+        .stat-label {
+            font-size: 0.62rem;
+            color: var(--text-muted);
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .stat-val {
+            font-size: 1.25rem;
+            font-weight: 800;
+            color: var(--text-primary);
+            font-family: var(--font-mono);
+        }
+
+        .volatility-sparkline-svg {
+            width: 100%;
+            height: 160px;
+            background-color: #FFFFFF;
+            border: 1px solid var(--border-glass);
+            border-radius: 12px;
+            margin-top: 8px;
+            box-shadow: var(--shadow-soft);
+        }
+
+        .graph-stats {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.68rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            margin-top: 4px;
+        }
+
+        /* View State 3: Dedicated Constraints & Settings Panel */
+        .settings-wrapper {
+            width: 100%;
+            height: 100%;
+            background-color: #FFFFFF;
+            border: 1px solid var(--border-glass);
+            border-radius: 20px;
+            box-shadow: var(--shadow-soft);
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            overflow-y: auto;
+        }
+
+        .settings-header-block {
+            border-bottom: 1.5px solid var(--border-glass);
+            padding-bottom: 12px;
+        }
+
+        .settings-title {
+            font-size: 1.1rem;
+            font-weight: 800;
+            color: var(--text-primary);
+            letter-spacing: -0.02em;
+        }
+
+        .settings-desc-label {
+            font-size: 0.76rem;
+            color: var(--text-muted);
+            margin-top: 2px;
+        }
+
+        /* Settings Grid Layout Cards */
+        .settings-cards-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+        }
+
+        .settings-control-card {
+            background-color: var(--bg-base);
+            border: 1px solid var(--border-glass);
+            border-radius: 14px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            position: relative;
+            transition: all 0.2s ease;
+        }
+
+        .settings-control-card:hover {
+            border-color: #CBD5E1;
+            box-shadow: var(--shadow-soft);
+        }
+
+        .settings-card-label {
+            font-size: 0.72rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-muted);
+            border-bottom: 1px solid rgba(0, 0, 0, 0.03);
+            padding-bottom: 6px;
+        }
+
+        .settings-card-value-display {
+            font-size: 1.8rem;
+            font-weight: 800;
+            color: var(--text-primary);
+            font-family: var(--font-mono);
+            margin: 4px 0;
+        }
+
+        .settings-card-description {
+            font-size: 0.72rem;
+            color: var(--text-secondary);
+            line-height: 1.4;
+        }
+
+        /* Injected dynamic alert cards styles */
+        .injected-dispatch-card {
+            background-color: #FFFFFF;
+            border: 1px solid var(--border-glass);
+            border-radius: 14px;
+            padding: 16px;
+            width: 100%;
+            box-shadow: var(--shadow-soft);
+            animation: slide-up-tab 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .injected-dispatch-card.severity-warning {
+            border-left-color: var(--color-amber);
+        }
+
+        @keyframes slide-up-tab {
+            from { opacity: 0; transform: translateY(6px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .injected-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .injected-badge {
+            font-size: 9px;
+            font-weight: 700;
+            color: var(--color-red);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .injected-dispatch-card.severity-warning .injected-badge {
+            color: var(--color-amber);
+        }
+
+        .injected-time {
+            font-size: 10px;
+            color: var(--text-muted);
+            font-family: var(--font-mono);
+        }
+
+        .injected-title {
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 6px;
+        }
+
+        .injected-desc {
+            font-size: 0.74rem;
+            color: var(--text-secondary);
+            line-height: 1.4;
+            margin-bottom: 12px;
+        }
+
+        .injected-meta-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 5px;
+            background-color: var(--bg-base);
+            padding: 8px 12px;
+            border-radius: 8px;
+            border: 1px solid var(--border-glass);
+            font-size: 0.68rem;
+        }
+
+        .injected-meta-row {
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .injected-meta-label {
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+
+        .injected-meta-val {
+            color: var(--text-primary);
+            font-weight: 700;
+        }
+
+        .injected-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 10px;
+            font-size: 0.68rem;
+            border-top: 1px solid var(--border-glass);
+            padding-top: 10px;
+            color: var(--text-muted);
+        }
+
+        .injected-probability span {
+            color: var(--color-red);
+            font-weight: 700;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Left Side-Dock Navigation Container -->
+    <aside class="side-dock">
+        <nav class="dock-nav">
+            <!-- Tab controllers via data-tab binding -->
+            <div class="dock-btn active" data-tab="map" title="Dispatch GIS Map">
+                <i class="fa-solid fa-map"></i>
+            </div>
+            <div class="dock-btn" data-tab="analytics" title="Telemetry Analytics">
+                <i class="fa-solid fa-chart-line"></i>
+            </div>
+            <div class="dock-btn" data-tab="settings" title="System Settings">
+                <i class="fa-solid fa-gear"></i>
+            </div>
+        </nav>
+        
+        <div class="dock-btn dock-logout" title="Exit Panel">
+            <i class="fa-solid fa-power-off"></i>
+        </div>
+    </aside>
+
+    <!-- Main operations screen -->
+    <main class="workspace">
+        
+        <!-- Operations Header -->
+        <div class="header-row">
+            <div class="header-left">
+                <span class="brand-title">PreCrash SoS</span>
+                
+                <!-- Real Operational Grounding Metrics -->
+                <div class="telemetry-summary">
+                    <div><span>LATENCY:</span><strong>14ms</strong></div>
+                    <div><span>ACTIVE UNITS:</span><strong>12</strong></div>
+                    <div><span>REGIONAL LOAD:</span><strong>64%</strong></div>
+                </div>
+            </div>
+            
+            <div class="header-right">
+                <!-- Connectivity Pill exactly bound with ID mesh-status-badge -->
+                <div id="mesh-status-badge" class="connectivity-pill">
+                    <span class="status-dot mesh-pulse-dot"></span>
+                    <span>MESH LINK: OFFLINE</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Dashboard Split Grid -->
+        <div class="workspace-grid">
+            
+            <!-- Left Column: Fleet Monitor & Dispatch Panels -->
+            <section class="left-column">
+                
+                <!-- Incident Focus Alert panel exactly bound with ID alert-dispatch-panel -->
+                <div class="glass-card dispatch-focus-card">
+                    <div class="ops-panel-header">
+                        <h3 class="panel-title">Operational Focus Alert</h3>
+                        <span id="active-alert-counter" class="panel-badge font-mono">LIVE FEED</span>
+                    </div>
+                    
+                    <div id="alert-dispatch-panel">
+                        <!-- Default pulsing green operational placeholder -->
+                        <div class="alert-idle-state">
+                            <span class="pulse-green-dot"></span>
+                            <span class="idle-message">System operational. Awaiting regional telemetry stream...</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Fleet Monitor panel exactly bound with ID active-responders-list -->
+                <div class="glass-card fleet-panel">
+                    <div class="ops-panel-header">
+                        <h3 class="panel-title">Fleet Monitor</h3>
+                        <span class="panel-badge">4 MONITORED</span>
+                    </div>
+                    
+                    <!-- Fleet Filter Search bar -->
+                    <div class="fleet-filter-container">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                        <input type="text" class="fleet-filter-input" placeholder="Search units or sectors...">
+                    </div>
+                    
+                    <div id="active-responders-list" class="responders-list-container">
+                        
+                        <!-- AMBULANCE-04 (Grounded Metropolitan Delta) -->
+                        <div class="responder-row-card status-enroute">
+                            <div class="responder-row-header">
+                                <div class="responder-identity">
+                                    <div class="identity-icon"><i class="fa-solid fa-truck-medical"></i></div>
+                                    <span class="responder-callsign">AMBULANCE-04</span>
+                                </div>
+                                <span class="responder-status-pill status-enroute">En-Route</span>
+                            </div>
+                            <div class="responder-data-grid">
+                                <div class="data-item"><span class="data-label">Sector:</span><span class="data-val" style="color: var(--color-blue)">METRO ALPHA</span></div>
+                                <div class="data-item"><span class="data-label">Speed:</span><span class="data-val">52 KM/H</span></div>
+                                <div class="data-item"><span class="data-label">ETA:</span><span class="data-val">3.2 MIN</span></div>
+                                <div class="data-item"><span class="data-label">Fuel/Batt:</span><span class="data-val">88%</span></div>
+                            </div>
+                        </div>
+
+                        <!-- QUICK-RESPONDER-02 (Grounded Metropolitan Delta) -->
+                        <div class="responder-row-card status-onscene">
+                            <div class="responder-row-header">
+                                <div class="responder-identity">
+                                    <div class="identity-icon"><i class="fa-solid fa-motorcycle"></i></div>
+                                    <span class="responder-callsign">QUICK-RESPONDER-02</span>
+                                </div>
+                                <span class="responder-status-pill status-onscene">On-Scene</span>
+                            </div>
+                            <div class="responder-data-grid">
+                                <div class="data-item"><span class="data-label">Sector:</span><span class="data-val" style="color: var(--color-blue)">SECTOR-4 INT</span></div>
+                                <div class="data-item"><span class="data-label">Speed:</span><span class="data-val">0 KM/H</span></div>
+                                <div class="data-item"><span class="data-label">ELAPSED:</span><span class="data-val">14.0 MIN</span></div>
+                                <div class="data-item"><span class="data-label">Fuel/Batt:</span><span class="data-val">91%</span></div>
+                            </div>
+                        </div>
+
+                        <!-- SUPPORT-VEHICLE-01 (Grounded Metropolitan Delta) -->
+                        <div class="responder-row-card status-standby">
+                            <div class="responder-row-header">
+                                <div class="responder-identity">
+                                    <div class="identity-icon"><i class="fa-solid fa-truck"></i></div>
+                                    <span class="responder-callsign">SUPPORT-VEHICLE-01</span>
+                                </div>
+                                <span class="responder-status-pill status-standby">Standby</span>
+                            </div>
+                            <div class="responder-data-grid">
+                                <div class="data-item"><span class="data-label">Sector:</span><span class="data-val" style="color: var(--color-blue)">HUB CENTRAL</span></div>
+                                <div class="data-item"><span class="data-label">Speed:</span><span class="data-val">0 KM/H</span></div>
+                                <div class="data-item"><span class="data-label">STATE:</span><span class="data-val">STATIONARY</span></div>
+                                <div class="data-item"><span class="data-label">Fuel/Batt:</span><span class="data-val">74%</span></div>
+                            </div>
+                        </div>
+
+                        <!-- AMBULANCE-09 (Grounded Metropolitan Delta) -->
+                        <div class="responder-row-card status-enroute">
+                            <div class="responder-row-header">
+                                <div class="responder-identity">
+                                    <div class="identity-icon"><i class="fa-solid fa-truck-medical"></i></div>
+                                    <span class="responder-callsign">AMBULANCE-09</span>
+                                </div>
+                                <span class="responder-status-pill status-enroute">En-Route</span>
+                            </div>
+                            <div class="responder-data-grid">
+                                <div class="data-item"><span class="data-label">Sector:</span><span class="data-val" style="color: var(--color-blue)">METRO ALPHA</span></div>
+                                <div class="data-item"><span class="data-label">Speed:</span><span class="data-val">60 KM/H</span></div>
+                                <div class="data-item"><span class="data-label">ETA:</span><span class="data-val">1.8 MIN</span></div>
+                                <div class="data-item"><span class="data-label">Fuel/Batt:</span><span class="data-val">95%</span></div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </section>
+            
+            <!-- Right Column: Interactive Tab View Manager Layout -->
+            <section class="right-column">
+                
+                <!-- View 1: Edge-to-Edge GIS Map (Map tab active by default) -->
+                <div id="map-view-panel" class="tab-panel active">
+                    <div class="map-card-wrapper">
+                        <div class="map-canvas-viewport">
+                            
+                            <!-- Premium light-themed coordinate vector grids -->
+                            <svg class="map-svg-canvas">
+                                <defs>
+                                    <pattern id="coord-grid-tab" width="60" height="60" patternUnits="userSpaceOnUse">
+                                        <path d="M 60 0 L 0 0 0 60" fill="none" stroke="rgba(0,0,0,0.015)" stroke-width="1"/>
+                                    </pattern>
+                                </defs>
+                                
+                                <rect width="100%" height="100%" fill="#F8FAFC" />
+                                <rect width="100%" height="100%" fill="url(#coord-grid-tab)" />
+                                
+                                <!-- Coordinates degree marking layout -->
+                                <text x="6" y="14" fill="rgba(15,23,42,0.1)" font-size="8" font-family="monospace">12.9250° N</text>
+                                <text x="6" y="134" fill="rgba(15,23,42,0.1)" font-size="8" font-family="monospace">12.9240° N</text>
+                                <text x="6" y="254" fill="rgba(15,23,42,0.1)" font-size="8" font-family="monospace">12.9230° N</text>
+                                <text x="6" y="374" fill="rgba(15,23,42,0.1)" font-size="8" font-family="monospace">12.9220° N</text>
+                                <text x="6" y="494" fill="rgba(15,23,42,0.1)" font-size="8" font-family="monospace">12.9210° N</text>
+                                
+                                <text x="140" y="595" fill="rgba(15,23,42,0.1)" font-size="8" font-family="monospace">77.4960° E</text>
+                                <text x="260" y="595" fill="rgba(15,23,42,0.1)" font-size="8" font-family="monospace">77.4970° E</text>
+                                <text x="380" y="595" fill="rgba(15,23,42,0.1)" font-size="8" font-family="monospace">77.4980° E</text>
+                                <text x="500" y="595" fill="rgba(15,23,42,0.1)" font-size="8" font-family="monospace">77.4990° E</text>
+                                
+                                <!-- City Infrastructure Blocks representation -->
+                                <rect x="80" y="70" width="100" height="90" rx="8" fill="rgba(15,23,42,0.01)" stroke="rgba(15,23,42,0.02)" />
+                                <rect x="200" y="70" width="80" height="90" rx="8" fill="rgba(15,23,42,0.01)" stroke="rgba(15,23,42,0.02)" />
+                                <rect x="560" y="70" width="110" height="90" rx="8" fill="rgba(15,23,42,0.01)" stroke="rgba(15,23,42,0.02)" />
+                                <rect x="80" y="450" width="120" height="80" rx="8" fill="rgba(15,23,42,0.01)" stroke="rgba(15,23,42,0.02)" />
+                                <rect x="620" y="450" width="90" height="80" rx="8" fill="rgba(15,23,42,0.01)" stroke="rgba(15,23,42,0.02)" />
+                                
+                                <!-- Metro Rail Alpha Line (Underlying roads / transit routes vector lines) -->
+                                <path d="M120 40 L 400 580" class="map-arterial-vector" />
+                                <path d="M120 40 L 400 580" class="map-arterial-vector-line" />
+                                
+                                <path d="M520 40 L 540 580" class="map-arterial-vector" />
+                                <path d="M520 40 L 540 580" class="map-arterial-vector-line" />
+                                
+                                <path d="M40 220 L 780 270" class="map-arterial-vector" />
+                                <path d="M40 220 L 780 270" class="map-arterial-vector-line" stroke-dasharray="4 4" />
+                                
+                                <!-- Major Highway Core Transit road vector -->
+                                <path d="M50 480 Q 280 380 430 320 T 780 140" class="map-highway-vector" />
+                                <path d="M50 480 Q 280 380 430 320 T 780 140" class="map-highway-vector-line" />
+                                <path d="M50 480 Q 280 380 430 320 T 780 140" class="map-highway-vector-dash" />
+                                
+                                <!-- Active transit corridor visual focus glow -->
+                                <path class="metro-dispatch-glow" d="M 285 370 Q 380 340 430 320 T 540 220" />
+                                <path class="metro-dispatch-line" d="M 285 370 Q 380 340 430 320 T 540 220" />
+                            </svg>
+
+                            <!-- Clean Transit Metropolitan landmarks pins perfectly styled and positioned -->
+                            <div class="map-pin-container pin-hub-central">
+                                <div class="map-pin-symbol"></div>
+                                <div class="map-pin-label">District Hub Central</div>
+                            </div>
+
+                            <div class="map-pin-container pin-sector-4">
+                                <div class="map-pin-symbol"></div>
+                                <div class="map-pin-label">Sector-4 Intersection</div>
+                            </div>
+
+                            <div class="map-pin-container pin-dispatch-target">
+                                <div class="map-pin-symbol"></div>
+                                <div class="map-pin-label">Metro Corridor Alpha</div>
+                            </div>
+
+                            <!-- Floating Label Banner -->
+                            <div class="map-floating-label">
+                                <span class="corridor-pulse-dot"></span>
+                                <span class="corridor-banner-label">METRO DISPATCH CORRIDOR</span>
+                            </div>
+
+                            <!-- Map controls overlay -->
+                            <div class="map-hud-controls">
+                                <button class="map-action-btn" title="Realign Compass"><i class="fa-solid fa-compass"></i></button>
+                                <button class="map-action-btn" title="Zoom In"><i class="fa-solid fa-plus"></i></button>
+                                <button class="map-action-btn" title="Zoom Out"><i class="fa-solid fa-minus"></i></button>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+
+                <!-- View 2: Telemetry Analytics Dashboard (Analytics tab) -->
+                <div id="analytics-view-panel" class="tab-panel">
+                    <div class="analytics-wrapper">
+                        <div class="analytics-header">
+                            <h3 class="analytics-title">Telemetry Analytics Workspace</h3>
+                            <p class="analytics-desc">Real-time packet parsing diagnostics and system load volatility benchmarks</p>
+                        </div>
+                        
+                        <div class="chart-stats-grid">
+                            <div class="chart-stat-cell">
+                                <span class="stat-label">Feed Latency</span>
+                                <span class="stat-val">14ms</span>
+                            </div>
+                            <div class="chart-stat-cell">
+                                <span class="stat-label">Load Volatility</span>
+                                <span class="stat-val">64%</span>
+                            </div>
+                            <div class="chart-stat-cell">
+                                <span class="stat-label">Active Units</span>
+                                <span class="stat-val">12</span>
+                            </div>
+                            <div class="chart-stat-cell">
+                                <span class="stat-label">Packet Ingress Rate</span>
+                                <span class="stat-val">28.4 Hz</span>
+                            </div>
+                        </div>
+
+                        <!-- Real-Time Telemetry Ingress Volatility Sparkline -->
+                        <div class="analytics-chart-card">
+                            <div class="chart-header">
+                                <h4 class="chart-title">Telemetry Ingress Volatility (hz)</h4>
+                                <span class="panel-badge font-mono" style="background: rgba(0, 122, 255, 0.08); color: var(--color-blue); font-weight: 700;">STREAM ACTIVE</span>
+                            </div>
+                            
+                            <svg class="volatility-sparkline-svg" viewBox="0 0 800 160" preserveAspectRatio="none">
+                                <defs>
+                                    <linearGradient id="volatility-gradient" x1="0" y1="0" x2="0" y2="1">
+                                        <stop offset="0%" stop-color="rgba(0, 122, 255, 0.18)"/>
+                                        <stop offset="100%" stop-color="rgba(0, 122, 255, 0)"/>
+                                    </linearGradient>
+                                </defs>
+                                <!-- Grid Lines -->
+                                <line x1="0" y1="40" x2="800" y2="40" stroke="rgba(15,23,42,0.03)" stroke-width="1.5" />
+                                <line x1="0" y1="80" x2="800" y2="80" stroke="rgba(15,23,42,0.03)" stroke-width="1.5" />
+                                <line x1="0" y1="120" x2="800" y2="120" stroke="rgba(15,23,42,0.03)" stroke-width="1.5" />
+                                
+                                <!-- Filled Area underneath sparkline -->
+                                <path d="M 0 130 C 80 120, 160 125, 240 85 C 320 45, 400 95, 480 60 C 560 25, 640 110, 720 50 L 800 90 L 800 160 L 0 160 Z" fill="url(#volatility-gradient)" />
+                                <!-- Sparkline path -->
+                                <path d="M 0 130 C 80 120, 160 125, 240 85 C 320 45, 400 95, 480 60 C 560 25, 640 110, 720 50 L 800 90" fill="none" stroke="var(--color-blue)" stroke-width="3" stroke-linecap="round" />
+                                <!-- Focus node indicators -->
+                                <circle cx="720" cy="50" r="5" fill="var(--color-blue)" stroke="#FFFFFF" stroke-width="2" />
+                            </svg>
+                            
+                            <div class="graph-stats">
+                                <span>Volatility Average: 28.4 Hz</span>
+                                <span>Peak Performance Index: 45 Hz</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- View 3: System Variables & Constraints (Settings tab) -->
+                <div id="settings-view-panel" class="tab-panel">
+                    <div class="settings-wrapper">
+                        <div class="settings-header-block">
+                            <h3 class="settings-title">System Variables & Constraints Configuration</h3>
+                            <p class="settings-desc-label">Configure global variables, alert parameters, and localized coordinate bounding limits natively</p>
+                        </div>
+                        
+                        <div class="settings-cards-grid">
+                            
+                            <!-- Variable 1: Risk Sensitivity Threshold -->
+                            <div class="settings-control-card">
+                                <span class="settings-card-label">Risk Sensitivity High</span>
+                                <div class="settings-card-value-display">0.75</div>
+                                <p class="settings-card-description">
+                                    Define the coefficients boundary limit. Probability metrics matching or scaling past this coefficient value dynamically trigger priority SOS warnings inside dispatch pipelines.
+                                </p>
+                            </div>
+
+                            <!-- Variable 2: Spatial Telemetry Scan Radius -->
+                            <div class="settings-control-card">
+                                <span class="settings-card-label">Spatial Telemetry Scan Radius</span>
+                                <div class="settings-card-value-display">5.0 KM</div>
+                                <p class="settings-card-description">
+                                    Establish the maximum geospatial circle scope boundary. Limits the scope of incoming satellite scans and dispatch coverage matrices.
+                                </p>
+                            </div>
+
+                            <!-- Variable 3: GPS Fuzzing Range -->
+                            <div class="settings-control-card">
+                                <span class="settings-card-label">GPS Coordinate Fuzzing Range</span>
+                                <div class="settings-card-value-display">350 M</div>
+                                <p class="settings-card-description">
+                                    Mitigates direct tracing telemetry issues by applying a fuzzy radius buffer. Obfuscates precise geolocation vectors for compliance regulations.
+                                </p>
+                            </div>
+                            
+                        </div>
+                    </div>
+                </div>
+
+            </section>
+
+        </div>
+    </main>
+
+    <!-- Navigation click bindings script -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const dockButtons = document.querySelectorAll('.dock-btn[data-tab]');
+            const tabPanels = document.querySelectorAll('.tab-panel');
+            const workspaceGrid = document.querySelector('.workspace-grid');
+
+            dockButtons.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const targetTab = btn.getAttribute('data-tab');
+                    
+                    // Clear previous active states from tabs
+                    dockButtons.forEach(b => b.classList.remove('active'));
+                    // Hide other views
+                    tabPanels.forEach(p => p.classList.remove('active'));
+                    
+                    // Activate selected view state
+                    btn.classList.add('active');
+                    const targetPanel = document.getElementById(`${targetTab}-view-panel`);
+                    if (targetPanel) {
+                        targetPanel.classList.add('active');
+                    }
+
+                    // Dynamically toggle Left Column to give maximum screen estate to other tabs
+                    if (targetTab === 'map') {
+                        workspaceGrid.classList.remove('full-width');
+                    } else {
+                        workspaceGrid.classList.add('full-width');
+                    }
+                    
+                    console.log(`[Command Center] Swapped right column view state to: ${targetTab}`);
+                });
+            });
+        });
+    </script>
+    
+    <!-- Link local client asset file at the bottom -->
+    <script src="/static/js/socket_client.js"></script>
+</body>
+</html>

@@ -1,0 +1,17 @@
+version: '3.8'
+
+services:
+  # MEMBER D: TELEMETRY OVERLAYS & WORKSPACE
+  frontend_dashboard:
+    build:
+      context: .
+      dockerfile: dashboard_frontend/Dockerfile
+    container_name: precrash_frontend_view
+    ports:
+      - "8081:80"
+    networks:
+      - precrash_mesh
+
+networks:
+  precrash_mesh:
+    driver: bridge
