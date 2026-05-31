@@ -13,7 +13,11 @@
     
     <!-- FontAwesome Vector Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
+
+    <!-- Leaflet.js — Real OpenStreetMap tiles -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin=""/>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+
     <!-- Official Socket.io Client CDN -->
     <script src="https://cdn.socket.io/4.7.5/socket.io.min.js" crossorigin="anonymous"></script>
 
@@ -1198,85 +1202,15 @@
                 <div id="map-view-panel" class="tab-panel active">
                     <div class="map-card-wrapper">
                         <div class="map-canvas-viewport">
-                            
-                            <!-- Premium light-themed coordinate vector grids -->
-                            <svg class="map-svg-canvas">
-                                <defs>
-                                    <pattern id="coord-grid-tab" width="60" height="60" patternUnits="userSpaceOnUse">
-                                        <path d="M 60 0 L 0 0 0 60" fill="none" stroke="rgba(0,0,0,0.015)" stroke-width="1"/>
-                                    </pattern>
-                                </defs>
-                                
-                                <rect width="100%" height="100%" fill="#F8FAFC" />
-                                <rect width="100%" height="100%" fill="url(#coord-grid-tab)" />
-                                
-                                <!-- Coordinates degree marking layout -->
-                                <text x="6" y="14" fill="rgba(15,23,42,0.1)" font-size="8" font-family="monospace">12.9250° N</text>
-                                <text x="6" y="134" fill="rgba(15,23,42,0.1)" font-size="8" font-family="monospace">12.9240° N</text>
-                                <text x="6" y="254" fill="rgba(15,23,42,0.1)" font-size="8" font-family="monospace">12.9230° N</text>
-                                <text x="6" y="374" fill="rgba(15,23,42,0.1)" font-size="8" font-family="monospace">12.9220° N</text>
-                                <text x="6" y="494" fill="rgba(15,23,42,0.1)" font-size="8" font-family="monospace">12.9210° N</text>
-                                
-                                <text x="140" y="595" fill="rgba(15,23,42,0.1)" font-size="8" font-family="monospace">77.4960° E</text>
-                                <text x="260" y="595" fill="rgba(15,23,42,0.1)" font-size="8" font-family="monospace">77.4970° E</text>
-                                <text x="380" y="595" fill="rgba(15,23,42,0.1)" font-size="8" font-family="monospace">77.4980° E</text>
-                                <text x="500" y="595" fill="rgba(15,23,42,0.1)" font-size="8" font-family="monospace">77.4990° E</text>
-                                
-                                <!-- City Infrastructure Blocks representation -->
-                                <rect x="80" y="70" width="100" height="90" rx="8" fill="rgba(15,23,42,0.01)" stroke="rgba(15,23,42,0.02)" />
-                                <rect x="200" y="70" width="80" height="90" rx="8" fill="rgba(15,23,42,0.01)" stroke="rgba(15,23,42,0.02)" />
-                                <rect x="560" y="70" width="110" height="90" rx="8" fill="rgba(15,23,42,0.01)" stroke="rgba(15,23,42,0.02)" />
-                                <rect x="80" y="450" width="120" height="80" rx="8" fill="rgba(15,23,42,0.01)" stroke="rgba(15,23,42,0.02)" />
-                                <rect x="620" y="450" width="90" height="80" rx="8" fill="rgba(15,23,42,0.01)" stroke="rgba(15,23,42,0.02)" />
-                                
-                                <!-- Metro Rail Alpha Line (Underlying roads / transit routes vector lines) -->
-                                <path d="M120 40 L 400 580" class="map-arterial-vector" />
-                                <path d="M120 40 L 400 580" class="map-arterial-vector-line" />
-                                
-                                <path d="M520 40 L 540 580" class="map-arterial-vector" />
-                                <path d="M520 40 L 540 580" class="map-arterial-vector-line" />
-                                
-                                <path d="M40 220 L 780 270" class="map-arterial-vector" />
-                                <path d="M40 220 L 780 270" class="map-arterial-vector-line" stroke-dasharray="4 4" />
-                                
-                                <!-- Major Highway Core Transit road vector -->
-                                <path d="M50 480 Q 280 380 430 320 T 780 140" class="map-highway-vector" />
-                                <path d="M50 480 Q 280 380 430 320 T 780 140" class="map-highway-vector-line" />
-                                <path d="M50 480 Q 280 380 430 320 T 780 140" class="map-highway-vector-dash" />
-                                
-                                <!-- Active transit corridor visual focus glow -->
-                                <path class="metro-dispatch-glow" d="M 285 370 Q 380 340 430 320 T 540 220" />
-                                <path class="metro-dispatch-line" d="M 285 370 Q 380 340 430 320 T 540 220" />
-                            </svg>
 
-                            <!-- Clean Transit Metropolitan landmarks pins perfectly styled and positioned -->
-                            <div class="map-pin-container pin-hub-central">
-                                <div class="map-pin-symbol"></div>
-                                <div class="map-pin-label">District Hub Central</div>
-                            </div>
-
-                            <div class="map-pin-container pin-sector-4">
-                                <div class="map-pin-symbol"></div>
-                                <div class="map-pin-label">Sector-4 Intersection</div>
-                            </div>
-
-                            <div class="map-pin-container pin-dispatch-target">
-                                <div class="map-pin-symbol"></div>
-                                <div class="map-pin-label">Metro Corridor Alpha</div>
-                            </div>
-
-                            <!-- Floating Label Banner -->
-                            <div class="map-floating-label">
+                            <!-- Floating corridor banner sits above the Leaflet map -->
+                            <div class="map-floating-label" style="z-index:1000;">
                                 <span class="corridor-pulse-dot"></span>
-                                <span class="corridor-banner-label">METRO DISPATCH CORRIDOR</span>
+                                <span class="corridor-banner-label">BENGALURU DISPATCH CORRIDOR</span>
                             </div>
 
-                            <!-- Map controls overlay -->
-                            <div class="map-hud-controls">
-                                <button class="map-action-btn" title="Realign Compass"><i class="fa-solid fa-compass"></i></button>
-                                <button class="map-action-btn" title="Zoom In"><i class="fa-solid fa-plus"></i></button>
-                                <button class="map-action-btn" title="Zoom Out"><i class="fa-solid fa-minus"></i></button>
-                            </div>
+                            <!-- Real OpenStreetMap via Leaflet.js -->
+                            <div id="leaflet-map" style="position:absolute;inset:0;width:100%;height:100%;z-index:1;border-radius:inherit;"></div>
 
                         </div>
                     </div>
@@ -1428,5 +1362,7 @@
     
     <!-- Link local client asset file at the bottom -->
     <script src="/static/js/socket_client.js"></script>
+    <!-- Live fleet renderer + auto risk scheduler -->
+    <script src="/static/js/map_renderer.js"></script>
 </body>
 </html>
