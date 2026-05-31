@@ -8,6 +8,7 @@ from datetime import datetime
 import numpy as np
 import pandas as pd
 from flask import Flask, request, jsonify
+from flask_cors import CORS
 from sklearn.ensemble import GradientBoostingClassifier
 from sklearn.preprocessing import StandardScaler
 from sklearn.pipeline import Pipeline
@@ -35,6 +36,7 @@ log = logging.getLogger("ml_api_server")
 # Flask app 
 app = Flask(__name__)
 app.config["JSON_SORT_KEYS"] = False
+CORS(app)
 
 # global model state 
 MODEL_PATH = os.path.join(os.path.dirname(__file__), "risk_model.joblib")

@@ -23,36 +23,36 @@
 
     <style>
         :root {
-            /* Premium "Liquid Glass" Light Mode Palette */
-            --bg-base: #F8FAFC;
-            --bg-surface: rgba(255, 255, 255, 0.85);
+            /* AeuxGlobal-inspired Light Forest Green Palette */
+            --bg-base: #F4FAF6;
+            --bg-surface: rgba(255, 255, 255, 0.92);
             --bg-surface-opaque: #FFFFFF;
-            --bg-dock: #0F172A; /* Slate 900 Dark Side-Dock */
+            --bg-dock: #0D2B22; /* Deep forest green nav rail */
             
-            --border-glass: rgba(226, 232, 240, 0.85);
+            --border-glass: #E0EDE6;
             --border-light: rgba(0, 0, 0, 0.04);
             
-            --color-green: #06C167;     /* Refined iOS Mint Green */
-            --color-red: #FF3B30;       /* iOS Red for Alerts */
-            --color-amber: #FF9500;     /* Warnings Amber */
-            --color-blue: #007AFF;      /* Corporate iOS Blue */
+            --color-green: #22C55E;     /* Online indicator green */
+            --color-red: #D93025;       /* Critical alert red — never muted */
+            --color-amber: #F59E0B;     /* Warnings amber */
+            --color-blue: #2E7D52;      /* Primary accent — medium forest green */
             
             /* Accent variables bound with socket_client.js */
-            --accent-amber: #FF9500;
-            --accent-red: #FF3B30;
-            --accent-cyan: #007AFF;
-            --accent-green: #06C167;
+            --accent-amber: #F59E0B;
+            --accent-red: #D93025;
+            --accent-cyan: #2E7D52;
+            --accent-green: #22C55E;
             
             /* High Contrast Scannable Typography */
-            --text-primary: #0F172A;    /* Slate 900 */
-            --text-secondary: #475569;  /* Slate 600 */
-            --text-muted: #94A3B8;      /* Slate 400 */
+            --text-primary: #1A1A1A;
+            --text-secondary: #4A5568;
+            --text-muted: #6B7280;
             
             --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
             --font-mono: "SFMono-Regular", Consolas, Menlo, monospace;
             
-            --shadow-soft: 0 10px 40px rgba(15, 23, 42, 0.03), 0 2px 8px rgba(15, 23, 42, 0.01);
-            --shadow-elevated: 0 20px 50px rgba(15, 23, 42, 0.06), 0 4px 12px rgba(15, 23, 42, 0.02);
+            --shadow-soft: 0 2px 8px rgba(0, 0, 0, 0.07);
+            --shadow-elevated: 0 4px 16px rgba(0, 0, 0, 0.10);
         }
 
         * {
@@ -85,7 +85,7 @@
             justify-content: space-between;
             align-items: center;
             z-index: 10;
-            box-shadow: 0 12px 30px rgba(15, 23, 42, 0.15);
+            box-shadow: 0 12px 30px rgba(13, 43, 34, 0.25);
         }
 
         .dock-nav {
@@ -106,11 +106,12 @@
             color: #64748B;
             cursor: pointer;
             transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
         }
 
         .dock-btn:hover, .dock-btn.active {
             color: #FFFFFF;
-            background-color: rgba(255, 255, 255, 0.08);
+            background-color: rgba(46, 125, 82, 0.35);
             transform: scale(1.05);
         }
 
@@ -148,7 +149,7 @@
         }
 
         .brand-title {
-            font-size: 1.3rem;
+            font-size: 1.45rem;
             font-weight: 800;
             color: var(--text-primary);
             letter-spacing: -0.04em;
@@ -158,7 +159,7 @@
         .telemetry-summary {
             display: flex;
             align-items: center;
-            gap: 20px;
+            gap: 8px;
             font-size: 0.72rem;
             font-weight: 600;
             color: var(--text-secondary);
@@ -166,9 +167,20 @@
             padding-left: 20px;
         }
 
+        /* Metric chip pill for center topbar group */
+        .telemetry-summary > div {
+            background-color: #F0F4F8;
+            border: 1px solid #E2E8F0;
+            border-radius: 100px;
+            padding: 4px 10px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
         .telemetry-summary span {
             color: var(--text-muted);
-            margin-right: 4px;
+            margin-right: 2px;
             font-weight: 500;
         }
 
@@ -179,12 +191,15 @@
         .header-right {
             display: flex;
             align-items: center;
+            gap: 12px;
+            border-left: 1px solid var(--border-glass);
+            padding-left: 16px;
         }
 
         /* Connectivity Pill exactly bound with ID mesh-status-badge */
         .connectivity-pill {
-            background-color: rgba(255, 59, 48, 0.06);
-            border: 1px solid rgba(255, 59, 48, 0.15);
+            background-color: rgba(217, 48, 37, 0.06);
+            border: 1px solid rgba(217, 48, 37, 0.18);
             color: var(--color-red);
             padding: 8px 16px;
             border-radius: 100px;
@@ -199,9 +214,9 @@
         }
 
         .connectivity-pill.online {
-            background-color: rgba(6, 193, 103, 0.06);
-            border: 1px solid rgba(6, 193, 103, 0.15);
-            color: var(--color-green);
+            background-color: rgba(34, 197, 94, 0.07);
+            border: 1px solid rgba(34, 197, 94, 0.20);
+            color: #16A34A;
         }
 
         .mesh-pulse-dot {
@@ -215,7 +230,7 @@
         .workspace-grid {
             flex: 1;
             display: grid;
-            grid-template-columns: 380px 1fr;
+            grid-template-columns: 340px 1fr;
             gap: 20px;
             overflow: hidden;
             transition: grid-template-columns 0.4s cubic-bezier(0.4, 0, 0.2, 1), gap 0.4s ease;
@@ -253,12 +268,12 @@
             border-radius: 2px;
         }
 
-        /* Premium "Liquid Glass" Container */
+        /* Clean Enterprise Card with green left accent */
         .glass-card {
-            background: var(--bg-surface);
-            backdrop-filter: blur(16px);
+            background: #FFFFFF;
             border: 1px solid var(--border-glass);
-            border-radius: 16px;
+            border-left: 3px solid #2E7D52;
+            border-radius: 12px;
             padding: 20px;
             box-shadow: var(--shadow-soft);
             position: relative;
@@ -275,11 +290,18 @@
         }
 
         .panel-title {
-            font-size: 0.76rem;
+            font-size: 11px;
             font-weight: 700;
             text-transform: uppercase;
-            letter-spacing: 0.06em;
-            color: var(--text-primary);
+            letter-spacing: 0.08em;
+            color: #6B7280;
+        }
+
+        /* Divider between alert and fleet panels */
+        .panel-section-divider {
+            height: 1px;
+            background-color: #E0EDE6;
+            margin: 4px 0;
         }
 
         .panel-badge {
@@ -312,17 +334,15 @@
             z-index: 2;
         }
 
-        /* Clean Pulsing Green Idle Indicator */
         .alert-idle-state {
             display: flex;
             align-items: center;
             gap: 12px;
             padding: 14px 18px;
-            border-radius: 12px;
-            background: rgba(6, 193, 103, 0.04);
-            border: 1px solid rgba(6, 193, 103, 0.12);
+            border-radius: 10px;
+            background: rgba(34, 197, 94, 0.05);
+            border: 1px solid rgba(34, 197, 94, 0.15);
             width: 100%;
-            box-shadow: inset 0 1px 2px rgba(6, 193, 103, 0.02);
         }
 
         .pulse-green-dot {
@@ -390,8 +410,8 @@
 
         .fleet-filter-input:focus {
             background-color: #FFFFFF;
-            border-color: var(--color-blue);
-            box-shadow: var(--shadow-soft);
+            border-color: #2E7D52;
+            box-shadow: 0 0 0 3px rgba(46, 125, 82, 0.10);
         }
 
         .responders-list-container {
@@ -464,21 +484,21 @@
         }
 
         .status-enroute {
-            background-color: rgba(255, 149, 0, 0.06);
-            color: var(--color-amber);
-            border: 1px solid rgba(255, 149, 0, 0.12);
+            background-color: rgba(245, 158, 11, 0.07);
+            color: #B45309;
+            border: 1px solid rgba(245, 158, 11, 0.18);
         }
 
         .status-onscene {
-            background-color: rgba(255, 59, 48, 0.06);
+            background-color: rgba(217, 48, 37, 0.06);
             color: var(--color-red);
-            border: 1px solid rgba(255, 59, 48, 0.12);
+            border: 1px solid rgba(217, 48, 37, 0.15);
         }
 
         .status-standby {
-            background-color: rgba(6, 193, 103, 0.06);
-            color: var(--color-green);
-            border: 1px solid rgba(6, 193, 103, 0.12);
+            background-color: rgba(34, 197, 94, 0.07);
+            color: #16A34A;
+            border: 1px solid rgba(34, 197, 94, 0.18);
         }
 
         /* Fleet data rows */
@@ -537,7 +557,7 @@
             height: 100%;
             background-color: #FFFFFF;
             border: 1px solid var(--border-glass);
-            border-radius: 20px;
+            border-radius: 16px;
             box-shadow: var(--shadow-soft);
             overflow: hidden;
             position: relative;
@@ -548,7 +568,7 @@
         .map-canvas-viewport {
             flex: 1;
             position: relative;
-            background-color: #F8FAFC;
+            background-color: #F4FAF6;
         }
 
         /* High fidelity road vectors representing universal metadata grid */
@@ -754,7 +774,7 @@
             height: 100%;
             background-color: #FFFFFF;
             border: 1px solid var(--border-glass);
-            border-radius: 20px;
+            border-radius: 16px;
             box-shadow: var(--shadow-soft);
             padding: 24px;
             display: flex;
@@ -862,7 +882,7 @@
             height: 100%;
             background-color: #FFFFFF;
             border: 1px solid var(--border-glass);
-            border-radius: 20px;
+            border-radius: 16px;
             box-shadow: var(--shadow-soft);
             padding: 24px;
             display: flex;
@@ -1033,9 +1053,37 @@
             color: var(--text-muted);
         }
 
-        .injected-probability span {
-            color: var(--color-red);
-            font-weight: 700;
+        /* Power button confirmation guard */
+        .dock-logout {
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .dock-logout.confirm-pending {
+            color: #F59E0B !important;
+            background-color: rgba(245, 158, 11, 0.15) !important;
+            border-radius: 12px;
+        }
+
+        /* Tooltip hover labels for nav icons */
+        .dock-btn::after {
+            content: attr(title);
+            position: absolute;
+            left: calc(100% + 12px);
+            top: 50%;
+            transform: translateY(-50%);
+            background-color: #1A1A1A;
+            color: #FFFFFF;
+            font-size: 0.65rem;
+            font-weight: 600;
+            white-space: nowrap;
+            padding: 4px 8px;
+            border-radius: 6px;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.15s ease;
+            z-index: 100;
+        }
+        .dock-btn:hover::after {
+            opacity: 1;
         }
     </style>
 </head>
@@ -1107,6 +1155,8 @@
                         </div>
                     </div>
                 </div>
+
+                <div class="panel-section-divider"></div>
 
                 <!-- Fleet Monitor panel exactly bound with ID active-responders-list -->
                 <div class="glass-card fleet-panel">
@@ -1360,6 +1410,31 @@
         });
     </script>
     
+    <!-- Power button confirmation guard -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const powerBtn = document.querySelector('.dock-logout');
+            let confirmPending = false;
+            let confirmTimer = null;
+            powerBtn.addEventListener('click', () => {
+                if (!confirmPending) {
+                    confirmPending = true;
+                    powerBtn.classList.add('confirm-pending');
+                    powerBtn.setAttribute('title', 'Click again to confirm');
+                    confirmTimer = setTimeout(() => {
+                        confirmPending = false;
+                        powerBtn.classList.remove('confirm-pending');
+                        powerBtn.setAttribute('title', 'Exit Panel');
+                    }, 3000);
+                } else {
+                    clearTimeout(confirmTimer);
+                    // Existing handler fires — no logic change
+                    console.log('[Command Center] Power-off confirmed.');
+                }
+            });
+        });
+    </script>
+
     <!-- Link local client asset file at the bottom -->
     <script src="/static/js/socket_client.js"></script>
     <!-- Live fleet renderer + auto risk scheduler -->
